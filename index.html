@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - Elly&#39;s Flip Cup Challenge</title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flip Cup Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #000036;
+            color: #343a40;
+            margin: 0;
+            padding: 0;
+        }
+        .game-container {
+            margin: 0px auto;
+            width: 300px;
+            height: 600px;
+            padding: 0px;
+            border: 0px solid #343a40;
+            border-radius: 0px;
+            background-image: url('https://static.wixstatic.com/media/7b5caa_fd5a13ad653043d6896ecacf35b0c592~mv2.jpg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        .cup-row {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-bottom: -185px;
+            position: relative;
+            top: 180px;
+        }
+        .cup {
+            width: 50px;
+            height: 60px;
+            cursor: pointer;
+            transition: transform 0.5s;
+            margin-bottom: -125px;
+        }
+        .flipped {
+            transform: rotate(180deg);
+        }
+        .game-buttons {
+            margin-top: 10px;
+            position: relative;
+            top: 165px;
+            height: 40px; /* Reserve space for the button */
+        }
+        .game-buttons button {
+            font-size: 16px;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            background-color: #007bff;
+        }
+        .game-buttons button:hover {
+            background-color: #0056b3;
+        }
+        .game-result {
+            font-size: 20px;
+            margin-top: -35px;
+        }
+        .drink-button {
+            width: 50px;
+            height: 50px; /* Make the button square */
+            margin-top: 10px;
+            position: relative;
+            top: 110px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .drink-button:disabled {
+            background-color: #aaa;
+        }
+        .scoreboard {
+            font-size: 18px;
+            color: white;
+            margin-top: 20px;
+            position: absolute;
+            bottom: 50px;
+            text-align: center;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <div class="cup-row" id="aiRow">
+            <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 1">
+            <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 2">
+            <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 3">
+            <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 4">
+        </div>
+
+        <div class="cup-row" id="playerRow">
+            <div>
+                <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 1">
+                <button class="drink-button" onclick="drink('player', 0)">Drink</button>
+            </div>
+            <div>
+                <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 2">
+                <button class="drink-button" onclick="drink('player', 1)">Drink</button>
+            </div>
+            <div>
+                <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 3">
+                <button class="drink-button" onclick="drink('player', 2)">Drink</button>
+            </div>
+            <div>
+                <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 4">
+                <button class="drink-button" onclick="drink('player', 3)">Drink</button>
+            </div>
+        </div>
+
+        <div class="game-buttons">
+            <button id="startButton" onclick="startGame()">Start Game</button>
+        </div>
+        <div class="game-result" id="gameResult"></div>
+        <div class="scoreboard" id="scoreboard">
+            Player Wins: 0 | Elly Wins: 0
+        </div>
+    </div>
+
+    <script>
+        let playerWins = 0;
+        let aiWins = 0;
+        let playerCupsFlipped = 0;
+        let aiCupsFlipped = 0;
+        let gameInProgress = false;
+        const drinkClicksRequired = 10;
+        let drinkClicks = [0, 0, 0, 0];
+        const defaultBackground = 'https://static.wixstatic.com/media/7b5caa_fd5a13ad653043d6896ecacf35b0c592~mv2.jpg';
+        const drinkingBackground = 'https://static.wixstatic.com/media/7b5caa_f5e68179165246c48d6c30ca3fa8a996~mv2.jpg';
+        let aiDrinkBaseDelay = 1500; // Start with a base delay for AI drinking
+        let aiInterval; // To store the AI's continuous flipping interval
+
+        function startGame() {
+            gameInProgress = true;
+            playerCupsFlipped = 0;
+            aiCupsFlipped = 0;
+            drinkClicks = [0, 0, 0, 0];
+            document.getElementById('gameResult').innerText = '';
+            document.getElementById('startButton').style.display = 'none'; // Hide the start button
+            resetCups();
+        }
+
+        function resetCups() {
+            const playerCups = document.getElementById('playerRow').querySelectorAll('.cup');
+            const aiCups = document.getElementById('aiRow').querySelectorAll('.cup');
+            const drinkButtons = document.getElementById('playerRow').querySelectorAll('.drink-button');
+
+            for (let i = 0; i < playerCups.length; i++) {
+                playerCups[i].classList.remove('flipped');
+                drinkButtons[i].disabled = false;
+            }
+            for (let i = 0; i < aiCups.length; i++) {
+                aiCups[i].classList.remove('flipped');
+            }
+            document.getElementById('gameContainer').style.backgroundImage = `url(${defaultBackground})`;
+        }
+
+        function drink(player, index) {
+            if (!gameInProgress || playerCupsFlipped !== index) return;
+
+            drinkClicks[index]++;
+
+            if (drinkClicks[index] >= drinkClicksRequired) {
+                flipCup(player, index);
+            }
+
+            // Start AI Elly's continuous action after the first player click
+            if (index === 0 && drinkClicks[index] === 1) {
+                aiContinuousFlip();
+            }
+        }
+
+        function flipCup(player, index) {
+            const playerCups = document.getElementById('playerRow').querySelectorAll('.cup');
+            const drinkButtons = document.getElementById('playerRow').querySelectorAll('.drink-button');
+
+            playerCups[index].classList.add('flipped');
+            drinkButtons[index].disabled = true;
+            playerCupsFlipped++;
+
+            if (playerCupsFlipped === playerCups.length) {
+                gameInProgress = false;
+                clearInterval(aiInterval); // Stop AI's action
+                playerWins++;
+                updateScoreboard();
+                document.getElementById('gameResult').innerText = 'You win! All cups flipped!';
+                increaseAiSpeed();
+                endGame();
+            }
+        }
+
+        function aiContinuousFlip() {
+            aiInterval = setInterval(() => {
+                if (aiCupsFlipped >= 4 || !gameInProgress) return clearInterval(aiInterval);
+
+                const aiCups = document.getElementById('aiRow').querySelectorAll('.cup');
+                const aiDrinkDelay = Math.random() * aiDrinkBaseDelay + 1000; // Random delay between 1000ms and aiDrinkBaseDelay+1000ms
+                const aiFlipDelay = 700; // Slower: 700ms delay between flipping after drinking
+
+                // AI "drinking"
+                document.getElementById('gameContainer').style.backgroundImage = `url(${drinkingBackground})`;
+
+                setTimeout(() => {
+                    // Switch back to default background before flipping
+                    document.getElementById('gameContainer').style.backgroundImage = `url(${defaultBackground})`;
+
+                    setTimeout(() => {
+                        aiCups[aiCupsFlipped].classList.add('flipped');
+                        aiCupsFlipped++;
+
+                        if (aiCupsFlipped === aiCups.length) {
+                            clearInterval(aiInterval); // Stop AI's action
+                            if (gameInProgress) { // Ensure AI wins only if the player hasn't won yet
+                                gameInProgress = false;
+                                aiWins++;
+                                updateScoreboard();
+                                document.getElementById('gameResult').innerText = 'Elly wins! All cups flipped!';
+                                endGame();
+                            }
+                        }
+                    }, aiFlipDelay);
+                }, aiDrinkDelay);
+            }, aiDrinkBaseDelay + 2000); // Add a little delay to ensure the setInterval cadence matches AI's speed
+        }
+
+        function endGame() {
+            gameInProgress = false;
+            const drinkButtons = document.getElementById('playerRow').querySelectorAll('.drink-button');
+            drinkButtons.forEach(button => button.disabled = true);
+            document.getElementById('startButton').innerText = 'Click for a Rematch'; // Change button text
+            document.getElementById('startButton').style.display = 'block'; // Show the button again
+        }
+
+        function updateScoreboard() {
+            document.getElementById('scoreboard').innerText = `Player Wins: ${playerWins} | Elly Wins: ${aiWins}`;
+        }
+
+        function increaseAiSpeed() {
+            // Reduce the base delay for AI drinking after each player win
+            if (aiDrinkBaseDelay > 500) {
+                aiDrinkBaseDelay -= 200; // Increase AI speed slightly
+            }
+        }
+    </script>
+</body>
+</html>
+<!-- partial -->
+  
+</body>
+</html>
