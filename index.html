@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#090b4f" />
-<title>Elly's Flip Cup — JNC Arcade 5.6 Glow-Up</title>
+<title>Elly's Flip Cup — JNC Arcade 5.6 Glow-Up v5</title>
 <style>
   :root{
     --game-w:380px;
@@ -21,23 +21,54 @@
 
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body{
-    width:100%; height:100%; margin:0; overflow:hidden;
+    width:100%; height:100%; min-height:100%; margin:0; overflow:hidden;
+    position:fixed; inset:0;
     background:#000036; color:#fff;
     font-family:Inter,ui-rounded,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
     -webkit-user-select:none; user-select:none;
+    -webkit-text-size-adjust:100%; text-size-adjust:100%;
     overscroll-behavior:none;
+    touch-action:none;
   }
 
   body{
-    display:grid; place-items:center;
-    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding:0;
+    width:100%;
+    height:100%;
+    display:grid;
+    place-items:center;
   }
 
   button,select{ font:inherit; }
 
+  /*
+    The game always renders on one fixed 380 x 760 portrait canvas.
+    JavaScript scales that complete canvas to the available visual viewport,
+    keeping Chrome, Safari, iPhone, iPad and desktop visually identical.
+  */
+  /*
+    The outer frame owns the scaled footprint and is centered by the body.
+    The fixed-size stage scales from its top-left corner inside that frame.
+    This avoids Safari centering a transformed 380 x 760 box incorrectly.
+  */
+  .stage-frame{
+    position:relative;
+    width:var(--game-w);
+    height:var(--game-h);
+    flex:none;
+  }
+
+  .stage{
+    position:absolute; left:0; top:0;
+    width:var(--game-w); height:var(--game-h);
+    transform:scale(1);
+    transform-origin:top left;
+    will-change:transform;
+  }
+
   .game{
-    width:min(var(--game-w),100vw);
-    height:min(var(--game-h),100dvh);
+    width:var(--game-w);
+    height:var(--game-h);
     position:relative; overflow:hidden; isolation:isolate;
     border-radius:24px;
     background:#080a3d url('https://static.wixstatic.com/media/7b5caa_fd5a13ad653043d6896ecacf35b0c592~mv2.jpg') center/cover no-repeat;
@@ -143,9 +174,11 @@
     border:1px solid var(--line); background:linear-gradient(180deg,rgba(0,0,0,.30),rgba(2,3,23,.66));
     box-shadow:inset 0 0 0 1px rgba(255,255,255,.025),0 10px 25px rgba(0,0,0,.28);
   }
-  .lane.active{ box-shadow:inset 0 0 0 2px currentColor,0 0 24px color-mix(in srgb,currentColor 38%,transparent); }
+  .lane.active{ box-shadow:inset 0 0 0 2px currentColor,0 0 22px rgba(255,255,255,.17); }
   .lane.elly{ color:var(--elly); }
+  .lane.elly.active{ box-shadow:inset 0 0 0 2px var(--elly),0 0 22px rgba(255,90,165,.32); }
   .lane.you{ color:var(--you); cursor:pointer; }
+  .lane.you.active{ box-shadow:inset 0 0 0 2px var(--you),0 0 22px rgba(22,226,139,.30); }
   .lane.you.ready-flip{ background:linear-gradient(180deg,rgba(22,226,139,.11),rgba(2,3,23,.70)); }
 
   .lane-title{
@@ -353,43 +386,20 @@
   .confetti{ position:absolute; z-index:18; top:-16px; width:7px; height:13px; border-radius:2px; animation:fall linear forwards; }
   @keyframes fall{ to{ transform:translateY(820px) rotate(680deg); } }
 
-  @media (max-width:360px){
-    :root{ --game-w:360px; --game-h:720px; }
-    .arena{ top:127px; bottom:138px; }
-    .cup-station{ min-height:80px; grid-template-columns:61px 1fr; }
-    .cup-shell{ width:59px; height:66px; }
-    .cup-shell img{ width:54px; height:63px; }
-    .title-big{ font-size:28px; }
-  }
+  /* Fullscreen changes the browser chrome/background only—not the game geometry. */
+  .game.is-fullscreen{ border-radius:24px; }
+  :fullscreen{ background:#000036; }
+  ::backdrop{ background:#000036; }
 
-  /* Phones use the full display. Desktop fullscreen keeps the same portrait arcade cabinet. */
-  .game.is-fullscreen,.game:fullscreen{
-    width:100vw; height:100dvh; border-radius:0;
-  }
-  .game.is-fullscreen .topbar,.game:fullscreen .topbar{ top:calc(env(safe-area-inset-top) + 7px); }
-  .game.is-fullscreen .hud,.game:fullscreen .hud{ top:calc(env(safe-area-inset-top) + 57px); }
-  .game.is-fullscreen .arena,.game:fullscreen .arena{ top:calc(env(safe-area-inset-top) + 130px); bottom:calc(env(safe-area-inset-bottom) + 142px); }
-  .game.is-fullscreen .footer,.game:fullscreen .footer{ bottom:calc(env(safe-area-inset-bottom) + 9px); }
-
-  @media (min-width:700px) and (pointer:fine){
-    .game.is-fullscreen,
-    .game:fullscreen{
-      width:min(var(--game-w),100vw) !important;
-      height:min(var(--game-h),100dvh) !important;
-      position:fixed !important;
-      inset:0 !important;
-      margin:auto !important;
-      border-radius:24px !important;
-    }
-    .game.is-fullscreen .topbar,.game:fullscreen .topbar{ top:8px; }
-    .game.is-fullscreen .hud,.game:fullscreen .hud{ top:58px; }
-    .game.is-fullscreen .arena,.game:fullscreen .arena{ top:132px; bottom:143px; }
-    .game.is-fullscreen .footer,.game:fullscreen .footer{ bottom:10px; }
-    .game:fullscreen::backdrop{ background:#000036; }
+  @supports (-webkit-touch-callout:none){
+    button{ -webkit-appearance:none; appearance:none; }
+    .game{ -webkit-transform:translateZ(0); transform:translateZ(0); }
   }
 </style>
 </head>
 <body>
+<div class="stage-frame" id="stageFrame">
+<div class="stage" id="stage">
 <div class="game" id="game" aria-label="Elly's Flip Cup game">
   <div class="topbar">
     <button class="icon-btn sound-btn" id="soundBtn" aria-label="Mute sound" title="Mute sound">
@@ -491,6 +501,8 @@
     </div>
   </div>
 </div>
+</div>
+</div>
 
 <script>
 (() => {
@@ -500,6 +512,8 @@
   const BG_DEFAULT = 'https://static.wixstatic.com/media/7b5caa_fd5a13ad653043d6896ecacf35b0c592~mv2.jpg';
   const BG_DRINKING = 'https://static.wixstatic.com/media/7b5caa_f5e68179165246c48d6c30ca3fa8a996~mv2.jpg';
   const TOTAL_CUPS = 4;
+  const DESIGN_WIDTH = 380;
+  const DESIGN_HEIGHT = 760;
 
   const DIFFICULTIES = {
     sober:     { label:'Sober Elly',     chug:[1550,2050], flipChance:.66, retry:[680,980], roundBoost:.97 },
@@ -512,6 +526,8 @@
   const ELLY_MISS = ['That cup betrayed me!','Nobody saw that.','It slipped!','Technical difficulty!'];
   const PLAYER_PRAISE = ['NAILED IT!','That was beautiful!','Absolute perfection!','The crowd goes wild!'];
 
+  const stageFrameEl = document.getElementById('stageFrame');
+  const stageEl = document.getElementById('stage');
   const gameEl = document.getElementById('game');
   const aiLane = document.getElementById('aiLane');
   const playerLane = document.getElementById('playerLane');
@@ -554,6 +570,7 @@
   let aiRunToken = 0;
   let aiRaf = 0;
   let pointerStart = null;
+  let layoutScale = 1;
 
   const state = {
     difficulty:'buzzed',
@@ -581,6 +598,39 @@
   const randInt = (min,max) => Math.floor(rand(min,max+1));
   const clamp = (v,min,max) => Math.max(min,Math.min(max,v));
   const sleep = ms => new Promise(resolve => setTimeout(resolve,ms));
+
+
+  function getViewportSize(){
+    // Use the stable layout viewport instead of Safari's moving visual viewport.
+    const width = Math.max(1,document.body.clientWidth || document.documentElement.clientWidth || window.innerWidth || DESIGN_WIDTH);
+    const height = Math.max(1,document.body.clientHeight || document.documentElement.clientHeight || window.innerHeight || DESIGN_HEIGHT);
+    return { width, height };
+  }
+
+  function updateViewportLayout(){
+    const viewport = getViewportSize();
+    const margin = viewport.width < 500 ? 6 : 14;
+    layoutScale = Math.min(
+      1,
+      Math.max(.1,(viewport.width - margin * 2) / DESIGN_WIDTH),
+      Math.max(.1,(viewport.height - margin * 2) / DESIGN_HEIGHT)
+    );
+
+    // Center the scaled footprint itself. The stage no longer relies on a
+    // translated fixed-position transform, which could sit off-center in Safari.
+    stageFrameEl.style.width = `${DESIGN_WIDTH * layoutScale}px`;
+    stageFrameEl.style.height = `${DESIGN_HEIGHT * layoutScale}px`;
+    stageEl.style.transform = `scale(${layoutScale})`;
+    document.documentElement.style.setProperty('--game-scale',String(layoutScale));
+  }
+
+  function pointerPoint(event){
+    const rect = stageEl.getBoundingClientRect();
+    return {
+      x:(event.clientX - rect.left) / layoutScale,
+      y:(event.clientY - rect.top) / layoutScale
+    };
+  }
 
   function ensureAudio(){
     if(!state.sound) return null;
@@ -763,9 +813,8 @@
     updateHUD();
   }
 
-  async function startMatch(){
+  function startMatch(){
     ensureAudio();
-    await requestGameFullscreen();
     prepareNewMatch();
     startRound();
   }
@@ -1007,14 +1056,16 @@
   function handlePointerDown(e){
     if(!state.playing || !playerLane.contains(e.target)) return;
     e.preventDefault();
-    pointerStart = { x:e.clientX, y:e.clientY, time:performance.now(), id:e.pointerId, phase:state.phase, moved:false };
+    const point = pointerPoint(e);
+    pointerStart = { x:point.x, y:point.y, time:performance.now(), id:e.pointerId, phase:state.phase, moved:false };
     if(state.phase === 'chug') playerTap();
     try{ playerLane.setPointerCapture(e.pointerId); }catch(_){ }
   }
 
   function handlePointerMove(e){
     if(!pointerStart || e.pointerId !== pointerStart.id) return;
-    const distance = Math.hypot(e.clientX-pointerStart.x,e.clientY-pointerStart.y);
+    const point = pointerPoint(e);
+    const distance = Math.hypot(point.x-pointerStart.x,point.y-pointerStart.y);
     if(distance >= 12) pointerStart.moved = true;
   }
 
@@ -1022,7 +1073,8 @@
     if(!pointerStart || e.pointerId !== pointerStart.id) return;
     e.preventDefault();
     const start = pointerStart;
-    const end = { x:e.clientX, y:e.clientY, time:performance.now() };
+    const point = pointerPoint(e);
+    const end = { x:point.x, y:point.y, time:performance.now() };
     const releaseDistance = Math.hypot(end.x-start.x,end.y-start.y);
     pointerStart = null;
     if(start.phase === 'flip' && state.phase === 'flip' && (start.moved || releaseDistance >= 12)){
@@ -1066,18 +1118,20 @@
 
   async function requestGameFullscreen(){
     try{
-      const request = gameEl.requestFullscreen || gameEl.webkitRequestFullscreen || gameEl.msRequestFullscreen;
+      // Fullscreen the document—not the cabinet—so every browser keeps the
+      // exact same portrait game geometry. iPhone Safari uses the soft fallback.
+      const target = document.documentElement;
+      const request = target.requestFullscreen || target.webkitRequestFullscreen || target.msRequestFullscreen;
       if(!isFullscreen() && request){
-        const result = request.call(gameEl);
+        const result = request.call(target);
         if(result && typeof result.then === 'function'){
           try{ await result; }catch(_){ }
         }
-        if(!isFullscreen()) gameEl.classList.add('is-fullscreen');
-      }else if(!request){
-        gameEl.classList.add('is-fullscreen');
       }
+      if(!isFullscreen()) gameEl.classList.add('is-fullscreen');
     }catch(_){ gameEl.classList.add('is-fullscreen'); }
     updateFullscreenUI();
+    window.setTimeout(updateViewportLayout,60);
   }
 
   function exitFullscreen(){
@@ -1099,13 +1153,12 @@
     gameEl.classList.toggle('is-fullscreen',full);
     fsFab.title = full ? 'Exit fullscreen' : 'Fullscreen';
     fsFab.setAttribute('aria-label',fsFab.title);
+    window.setTimeout(updateViewportLayout,30);
   }
 
   function fullscreenGuard(){
-    const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if(mobile && state.playing && !isFullscreen() && !gameEl.classList.contains('is-fullscreen') && !state.intentionalFsExit){
-      setTimeout(() => requestGameFullscreen(),50);
-    }
+    // Fullscreen is now entirely user-controlled. Exiting it never triggers
+    // an automatic request to enter again.
     state.intentionalFsExit = false;
     updateFullscreenUI();
   }
@@ -1149,9 +1202,18 @@
     fsFab.addEventListener('click',e => { e.preventDefault(); e.stopPropagation(); toggleFullscreen(true); });
     soundBtn.addEventListener('click',e => { e.preventDefault(); e.stopPropagation(); toggleSound(); });
     ['fullscreenchange','webkitfullscreenchange','msfullscreenchange'].forEach(event => document.addEventListener(event,fullscreenGuard));
+    window.addEventListener('resize',updateViewportLayout,{passive:true});
+    window.addEventListener('orientationchange',() => window.setTimeout(updateViewportLayout,120),{passive:true});
+    // Stop iOS rubber-band panning and pinch/double-tap viewport movement while
+    // preserving normal pointer/click events for every game control.
+    gameEl.addEventListener('touchmove',e => e.preventDefault(),{passive:false});
+    ['gesturestart','gesturechange','gestureend'].forEach(type => {
+      document.addEventListener(type,e => e.preventDefault(),{passive:false});
+    });
   }
 
   function init(){
+    updateViewportLayout();
     buildTrack(aiTrack,'Elly');
     buildTrack(playerTrack,'Your');
     resetTracks();
@@ -1165,6 +1227,8 @@
     console.assert(getStations(aiTrack).length === TOTAL_CUPS,'Elly should have four cups.');
     console.assert(getStations(playerTrack).length === TOTAL_CUPS,'Player should have four cups.');
     console.assert(typeof evaluateSwipe === 'function','Swipe evaluation should exist.');
+    console.assert(stageFrameEl && stageEl && DESIGN_WIDTH === 380 && DESIGN_HEIGHT === 760,'Centered portrait stage should exist.');
+    console.assert(stageFrameEl.style.width && stageFrameEl.style.height,'Scaled frame should define the centered footprint.');
   }
 
   init();
