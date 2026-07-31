@@ -1,276 +1,1174 @@
 <!DOCTYPE html>
-<html lang="en" >
-<head>
-  <meta charset="UTF-8">
-  <title>CodePen - Elly&#39;s Flip Cup Challenge</title>
-  
-
-</head>
-<body>
-<!-- partial:index.partial.html -->
-<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flip Cup Game</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #000036;
-            color: #343a40;
-            margin: 0;
-            padding: 0;
-        }
-        .game-container {
-            margin: 0px auto;
-            width: 300px;
-            height: 600px;
-            padding: 0px;
-            border: 0px solid #343a40;
-            border-radius: 0px;
-            background-image: url('https://static.wixstatic.com/media/7b5caa_fd5a13ad653043d6896ecacf35b0c592~mv2.jpg');
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-        }
-        .cup-row {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-            margin-bottom: -185px;
-            position: relative;
-            top: 180px;
-        }
-        .cup {
-            width: 50px;
-            height: 60px;
-            cursor: pointer;
-            transition: transform 0.5s;
-            margin-bottom: -125px;
-        }
-        .flipped {
-            transform: rotate(180deg);
-        }
-        .game-buttons {
-            margin-top: 10px;
-            position: relative;
-            top: 165px;
-            height: 40px; /* Reserve space for the button */
-        }
-        .game-buttons button {
-            font-size: 16px;
-            padding: 10px 20px;
-            margin: 10px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            color: #fff;
-            background-color: #007bff;
-        }
-        .game-buttons button:hover {
-            background-color: #0056b3;
-        }
-        .game-result {
-            font-size: 20px;
-            margin-top: -35px;
-        }
-        .drink-button {
-            width: 50px;
-            height: 50px; /* Make the button square */
-            margin-top: 10px;
-            position: relative;
-            top: 110px;
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .drink-button:disabled {
-            background-color: #aaa;
-        }
-        .scoreboard {
-            font-size: 18px;
-            color: white;
-            margin-top: 20px;
-            position: absolute;
-            bottom: 50px;
-            text-align: center;
-            width: 100%;
-        }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#090b4f" />
+<title>Elly's Flip Cup — JNC Arcade 5.6 Glow-Up</title>
+<style>
+  :root{
+    --game-w:380px;
+    --game-h:760px;
+    --elly:#ff5aa5;
+    --you:#16e28b;
+    --cyan:#00eaff;
+    --gold:#ffd166;
+    --navy:#080a3d;
+    --panel:rgba(5,7,35,.84);
+    --line:rgba(255,255,255,.14);
+    --shadow:0 18px 55px rgba(0,0,0,.52);
+  }
+
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    width:100%; height:100%; margin:0; overflow:hidden;
+    background:#000036; color:#fff;
+    font-family:Inter,ui-rounded,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    -webkit-user-select:none; user-select:none;
+    overscroll-behavior:none;
+  }
+
+  body{
+    display:grid; place-items:center;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  button,select{ font:inherit; }
+
+  .game{
+    width:min(var(--game-w),100vw);
+    height:min(var(--game-h),100dvh);
+    position:relative; overflow:hidden; isolation:isolate;
+    border-radius:24px;
+    background:#080a3d url('https://static.wixstatic.com/media/7b5caa_fd5a13ad653043d6896ecacf35b0c592~mv2.jpg') center/cover no-repeat;
+    box-shadow:var(--shadow);
+    touch-action:none;
+  }
+
+  .game::before{
+    content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(circle at 50% -5%,rgba(0,234,255,.24),transparent 35%),
+      linear-gradient(180deg,rgba(0,0,0,.14),rgba(3,4,30,.60) 52%,rgba(0,0,0,.82));
+  }
+
+  .game::after{
+    content:""; position:absolute; inset:0; z-index:10; pointer-events:none; opacity:.24;
+    background:repeating-linear-gradient(180deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px);
+    mix-blend-mode:soft-light;
+  }
+
+  .game.shake{ animation:screenShake .24s linear; }
+  @keyframes screenShake{
+    0%,100%{ transform:translate(0,0); }
+    25%{ transform:translate(-5px,2px); }
+    50%{ transform:translate(4px,-2px); }
+    75%{ transform:translate(-2px,1px); }
+  }
+
+  .topbar{
+    position:absolute; top:8px; left:10px; right:10px; z-index:5;
+    display:grid; grid-template-columns:42px 1fr 42px; align-items:center; gap:8px;
+  }
+
+  .icon-btn{
+    width:40px; height:40px; padding:0; display:grid; place-items:center;
+    border:1px solid var(--line); border-radius:50%; color:#fff;
+    background:rgba(0,0,0,.58); box-shadow:0 8px 22px rgba(0,0,0,.34); cursor:pointer;
+  }
+  .icon-btn:active{ transform:scale(.95); }
+  .icon-btn svg{ width:19px; height:19px; pointer-events:none; }
+  .game.is-fullscreen .fs-fab .enter,.game:fullscreen .fs-fab .enter{ display:none; }
+  .game:not(.is-fullscreen) .fs-fab .exit{ display:none; }
+  .sound-btn.muted .sound-on,.sound-btn:not(.muted) .sound-off{ display:none; }
+
+  .brand{
+    min-width:0; text-align:center; font-weight:1000; text-transform:uppercase;
+    letter-spacing:.12em; font-size:13px; text-shadow:0 2px 7px rgba(0,0,0,.8);
+  }
+  .brand small{ display:block; color:var(--cyan); font-size:8px; letter-spacing:.24em; margin-top:1px; }
+
+  .hud{
+    position:absolute; top:58px; left:10px; right:10px; z-index:4;
+    display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px;
+  }
+
+  .fighter{
+    min-width:0; display:flex; align-items:center; gap:7px; padding:7px;
+    border:1px solid var(--line); border-radius:14px; background:rgba(0,0,0,.50);
+    box-shadow:0 8px 20px rgba(0,0,0,.26);
+  }
+  .fighter.you{ justify-content:flex-end; text-align:right; }
+  .avatar{
+    flex:0 0 34px; width:34px; height:34px; border-radius:50%; display:grid; place-items:center;
+    font-size:10px; font-weight:1000; border:2px solid currentColor; background:rgba(255,255,255,.08);
+  }
+  .fighter.elly{ color:var(--elly); }
+  .fighter.you{ color:var(--you); }
+  .fighter-copy{ min-width:0; }
+  .fighter-name{ color:#fff; font-size:11px; font-weight:1000; letter-spacing:.08em; text-transform:uppercase; }
+  .round-pips{ display:flex; gap:4px; margin-top:4px; }
+  .fighter.you .round-pips{ justify-content:flex-end; }
+  .pip{ width:17px; height:5px; border-radius:99px; background:rgba(255,255,255,.16); }
+  .fighter.elly .pip.on{ background:var(--elly); box-shadow:0 0 9px rgba(255,90,165,.8); }
+  .fighter.you .pip.on{ background:var(--you); box-shadow:0 0 9px rgba(22,226,139,.8); }
+
+  .round-label{
+    padding:6px 8px; border-radius:10px; color:var(--gold); background:rgba(0,0,0,.62);
+    border:1px solid var(--line); font-size:10px; font-weight:1000; text-align:center; text-transform:uppercase; letter-spacing:.08em;
+  }
+
+  .reaction{
+    position:absolute; top:113px; left:50%; z-index:7; max-width:82%; transform:translateX(-50%) translateY(-8px) scale(.92);
+    opacity:0; pointer-events:none; padding:7px 11px; border-radius:12px;
+    background:#fff; color:#14152f; font-size:12px; font-weight:1000; text-align:center;
+    box-shadow:0 8px 24px rgba(0,0,0,.35);
+  }
+  .reaction.show{ animation:reactionPop 1.18s ease both; }
+  .reaction.elly{ border:2px solid var(--elly); }
+  .reaction.you{ border:2px solid var(--you); }
+  @keyframes reactionPop{
+    0%{ opacity:0; transform:translateX(-50%) translateY(-8px) scale(.82); }
+    14%,78%{ opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
+    100%{ opacity:0; transform:translateX(-50%) translateY(-4px) scale(.96); }
+  }
+
+  .arena{
+    position:absolute; z-index:2; top:132px; bottom:143px; left:10px; right:10px;
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+  }
+
+  .lane{
+    min-width:0; position:relative; overflow:hidden; border-radius:20px;
+    border:1px solid var(--line); background:linear-gradient(180deg,rgba(0,0,0,.30),rgba(2,3,23,.66));
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.025),0 10px 25px rgba(0,0,0,.28);
+  }
+  .lane.active{ box-shadow:inset 0 0 0 2px currentColor,0 0 24px color-mix(in srgb,currentColor 38%,transparent); }
+  .lane.elly{ color:var(--elly); }
+  .lane.you{ color:var(--you); cursor:pointer; }
+  .lane.you.ready-flip{ background:linear-gradient(180deg,rgba(22,226,139,.11),rgba(2,3,23,.70)); }
+
+  .lane-title{
+    height:34px; display:flex; justify-content:space-between; align-items:center; padding:0 10px;
+    color:#fff; font-size:10px; font-weight:1000; letter-spacing:.10em; text-transform:uppercase;
+    border-bottom:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.035);
+  }
+  .lane-title b{ color:currentColor; }
+  .lane-title span{ color:rgba(255,255,255,.72); font-size:9px; }
+
+  .cup-track{
+    height:calc(100% - 34px); display:flex; flex-direction:column; justify-content:space-around; align-items:center;
+    padding:8px 6px 10px;
+  }
+
+  .cup-station{
+    width:100%; min-height:clamp(64px,10.8vh,86px); position:relative; display:grid; grid-template-columns:68px 1fr; align-items:center; gap:4px;
+    opacity:.52; transform:scale(.94); transition:opacity .2s ease,transform .2s ease;
+  }
+  .cup-station.current{ opacity:1; transform:scale(1); }
+  .cup-station.done{ opacity:.78; }
+
+  .cup-shell{
+    width:64px; height:72px; position:relative; display:grid; place-items:center;
+    transform-origin:50% 72%; will-change:transform;
+  }
+  .cup-shell img{
+    position:relative; z-index:3; width:58px; height:68px; object-fit:contain;
+    filter:drop-shadow(0 7px 8px rgba(0,0,0,.44)); pointer-events:none;
+  }
+  .liquid-window{
+    position:absolute; z-index:2; left:14px; right:14px; top:16px; bottom:12px; overflow:hidden;
+    clip-path:polygon(14% 0,86% 0,100% 100%,0 100%);
+    border-radius:2px 2px 10px 10px; pointer-events:none;
+  }
+  .liquid-fill{
+    position:absolute; left:0; right:0; bottom:0; height:100%;
+    background:linear-gradient(180deg,rgba(255,224,120,.95),rgba(210,90,20,.96));
+    box-shadow:inset 0 4px 0 rgba(255,255,255,.28); transition:height .07s linear;
+  }
+  .liquid-fill::before{
+    content:""; position:absolute; left:-12%; right:-12%; top:-3px; height:7px; border-radius:50%;
+    background:rgba(255,239,170,.9); animation:slosh .65s ease-in-out infinite alternate;
+  }
+  @keyframes slosh{ to{ transform:translateX(8px) rotate(2deg); } }
+
+  .station-info{ min-width:0; display:grid; gap:6px; }
+  .station-number{ font-size:10px; font-weight:1000; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.74); }
+  .meter{ height:8px; border-radius:99px; overflow:hidden; background:rgba(255,255,255,.12); box-shadow:inset 0 1px 2px rgba(0,0,0,.62); }
+  .meter i{ display:block; width:0%; height:100%; border-radius:inherit; background:currentColor; transition:width .07s linear; }
+  .station-status{ min-height:12px; font-size:9px; line-height:1.1; font-weight:900; letter-spacing:.06em; color:rgba(255,255,255,.70); text-transform:uppercase; }
+
+  .cup-shell.landed{ transform:rotate(180deg) translateY(-2px); }
+  .cup-shell.flip-perfect{ animation:flipPerfect .72s cubic-bezier(.18,.78,.22,1) forwards; }
+  .cup-shell.flip-good{ animation:flipGood .78s cubic-bezier(.2,.75,.2,1) forwards; }
+  .cup-shell.flip-weak{ animation:flipWeak .65s ease forwards; }
+  .cup-shell.flip-crooked{ animation:flipCrooked .78s ease forwards; }
+  .cup-shell.flip-over{ animation:flipOver .85s ease forwards; }
+  .cup-shell.ai-fail{ animation:aiFail .72s ease forwards; }
+
+  @keyframes flipPerfect{
+    0%{ transform:translateY(0) rotate(0); }
+    42%{ transform:translateY(-68px) rotate(205deg) scale(1.08); }
+    76%{ transform:translateY(-7px) rotate(174deg); }
+    100%{ transform:translateY(-2px) rotate(180deg); }
+  }
+  @keyframes flipGood{
+    0%{ transform:translateY(0) rotate(0); }
+    46%{ transform:translateY(-55px) rotate(192deg); }
+    82%{ transform:translateY(-5px) rotate(168deg); }
+    100%{ transform:translateY(-2px) rotate(180deg); }
+  }
+  @keyframes flipWeak{
+    0%{ transform:translateY(0) rotate(0); }
+    55%{ transform:translateY(-22px) rotate(76deg); }
+    100%{ transform:translateY(3px) rotate(88deg); }
+  }
+  @keyframes flipCrooked{
+    0%{ transform:translate(0,0) rotate(0); }
+    48%{ transform:translate(28px,-38px) rotate(154deg); }
+    100%{ transform:translate(18px,5px) rotate(96deg); }
+  }
+  @keyframes flipOver{
+    0%{ transform:translateY(0) rotate(0); }
+    48%{ transform:translateY(-72px) rotate(300deg); }
+    100%{ transform:translateY(4px) rotate(360deg); }
+  }
+  @keyframes aiFail{
+    0%{ transform:translateY(0) rotate(0); }
+    48%{ transform:translateY(-44px) rotate(142deg); }
+    100%{ transform:translate(11px,4px) rotate(92deg); }
+  }
+
+  .swipe-guide{
+    position:absolute; z-index:8; left:50%; bottom:20px; transform:translateX(-50%);
+    width:86%; padding:9px 8px; border:1px solid rgba(22,226,139,.48); border-radius:14px;
+    background:rgba(2,22,18,.82); text-align:center; font-size:10px; font-weight:1000; letter-spacing:.07em; text-transform:uppercase;
+    opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .lane.ready-flip .swipe-guide{ opacity:1; animation:guidePulse .75s ease-in-out infinite alternate; }
+  .swipe-arrow{ display:block; margin:auto; font-size:26px; line-height:.8; color:var(--you); }
+  @keyframes guidePulse{ to{ transform:translateX(-50%) translateY(-3px); box-shadow:0 0 20px rgba(22,226,139,.25); } }
+
+  .footer{
+    position:absolute; z-index:5; left:10px; right:10px; bottom:10px;
+    display:grid; gap:7px;
+  }
+  .status-row{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:7px; }
+  .stat{
+    min-width:0; padding:7px 8px; border-radius:12px; background:rgba(0,0,0,.58); border:1px solid var(--line);
+    text-align:center; box-shadow:0 7px 18px rgba(0,0,0,.24);
+  }
+  .stat small{ display:block; font-size:8px; color:rgba(255,255,255,.62); text-transform:uppercase; letter-spacing:.12em; font-weight:900; }
+  .stat strong{ display:block; margin-top:1px; font-size:13px; }
+  .phase-pill{
+    min-width:112px; padding:9px 10px; border-radius:999px; text-align:center;
+    color:#fff; background:linear-gradient(180deg,#5968ff,#3a43c7); border:1px solid rgba(255,255,255,.20);
+    font-size:10px; font-weight:1000; letter-spacing:.10em; text-transform:uppercase;
+    box-shadow:0 8px 20px rgba(0,0,0,.30);
+  }
+  .phase-pill.flip{ background:linear-gradient(180deg,#15d987,#07975f); animation:phasePulse .55s ease-in-out infinite alternate; }
+  @keyframes phasePulse{ to{ transform:scale(1.035); } }
+  .instruction{
+    min-height:18px; padding:2px 6px; text-align:center; font-size:11px; font-weight:800; text-shadow:0 2px 5px rgba(0,0,0,.8);
+  }
+  .tap-zone-label{
+    padding:8px; border:1px dashed rgba(255,255,255,.24); border-radius:12px; background:rgba(0,0,0,.30);
+    text-align:center; color:rgba(255,255,255,.78); font-size:9px; font-weight:900; letter-spacing:.10em; text-transform:uppercase;
+  }
+  .tap-zone-label b{ color:var(--you); }
+
+  .overlay{
+    position:absolute; inset:0; z-index:20; display:grid; place-items:center; padding:18px;
+    background:radial-gradient(circle at 50% 20%,rgba(18,27,102,.50),rgba(0,0,0,.88));
+  }
+  .overlay.hidden{ display:none; }
+  .panel{
+    width:100%; max-width:330px; padding:22px 18px; border:1px solid rgba(255,255,255,.17); border-radius:24px;
+    background:rgba(4,6,30,.91); box-shadow:0 24px 70px rgba(0,0,0,.58); text-align:center;
+  }
+  .logo-kicker{ color:var(--cyan); font-size:9px; font-weight:1000; text-transform:uppercase; letter-spacing:.26em; }
+  .title-big{
+    margin:5px 0 4px; font-size:31px; line-height:.95; font-weight:1000; letter-spacing:.035em; text-transform:uppercase;
+    text-shadow:0 0 20px rgba(0,234,255,.26);
+  }
+  .title-big em{ display:block; color:var(--elly); font-style:normal; }
+  .subtitle{ margin:9px auto 16px; max-width:260px; color:rgba(255,255,255,.78); font-size:12px; line-height:1.35; }
+  .difficulty-title{ margin:12px 0 7px; font-size:9px; font-weight:1000; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); }
+  .difficulty-grid{ display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+  .difficulty{
+    padding:9px 6px; border-radius:12px; border:1px solid var(--line); background:rgba(255,255,255,.055); color:#fff; cursor:pointer;
+    font-size:9px; font-weight:1000; letter-spacing:.06em; text-transform:uppercase;
+  }
+  .difficulty span{ display:block; margin-top:2px; color:rgba(255,255,255,.56); font-size:7px; }
+  .difficulty.selected{ border-color:var(--cyan); background:rgba(0,234,255,.13); box-shadow:0 0 16px rgba(0,234,255,.18); }
+  .primary-btn,.secondary-btn{
+    width:100%; margin-top:12px; padding:13px 14px; border:0; border-radius:14px; color:#fff; cursor:pointer;
+    font-weight:1000; letter-spacing:.09em; text-transform:uppercase; box-shadow:0 10px 25px rgba(0,0,0,.34);
+  }
+  .primary-btn{ background:linear-gradient(180deg,#6574ff,#3d48ce); }
+  .secondary-btn{ background:linear-gradient(180deg,#f0669f,#c63773); }
+  .mini-btn{
+    margin-top:9px; padding:6px 8px; border:0; background:transparent; color:rgba(255,255,255,.68); cursor:pointer;
+    font-size:9px; font-weight:900; text-decoration:underline; text-underline-offset:3px;
+  }
+
+  .howto{ display:none; text-align:left; }
+  .howto.show{ display:block; }
+  .howto-step{ display:grid; grid-template-columns:34px 1fr; gap:9px; align-items:center; margin:10px 0; }
+  .step-icon{ width:34px; height:34px; display:grid; place-items:center; border-radius:10px; background:rgba(0,234,255,.12); color:var(--cyan); font-size:17px; font-weight:1000; }
+  .howto-step b{ display:block; font-size:11px; }
+  .howto-step span{ display:block; margin-top:1px; color:rgba(255,255,255,.64); font-size:10px; line-height:1.3; }
+
+  .countdown{
+    display:none; font-size:86px; line-height:1; font-weight:1000; text-align:center; color:#fff;
+    text-shadow:0 0 30px rgba(0,234,255,.5),0 10px 30px rgba(0,0,0,.8);
+  }
+  .countdown.pop{ animation:countPop .58s ease; }
+  @keyframes countPop{ 0%{ opacity:0; transform:scale(.45); } 45%{ opacity:1; transform:scale(1.14); } 100%{ transform:scale(1); } }
+
+  .result-title{ margin:4px 0; font-size:28px; line-height:1; font-weight:1000; text-transform:uppercase; }
+  .result-title.win{ color:var(--you); }
+  .result-title.lose{ color:var(--elly); }
+  .result-copy{ color:rgba(255,255,255,.75); font-size:12px; line-height:1.4; margin:10px 0; }
+  .result-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:12px 0; }
+  .result-stat{ padding:9px 5px; border-radius:11px; background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.08); }
+  .result-stat strong{ display:block; color:var(--gold); font-size:16px; }
+  .result-stat span{ display:block; color:rgba(255,255,255,.58); font-size:7px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+
+  .callout{
+    position:absolute; z-index:12; left:50%; top:50%; transform:translate(-50%,-50%) scale(.7); opacity:0;
+    pointer-events:none; white-space:nowrap; font-size:38px; line-height:1; font-weight:1000; font-style:italic; text-transform:uppercase;
+    color:#fff; -webkit-text-stroke:1px rgba(0,0,0,.35); text-shadow:0 4px 0 rgba(0,0,0,.28),0 0 26px currentColor;
+  }
+  .callout.show{ animation:callout .8s ease both; }
+  .callout.perfect{ color:var(--gold); }
+  .callout.miss{ color:#ff6b6b; }
+  .callout.good{ color:var(--you); }
+  @keyframes callout{
+    0%{ opacity:0; transform:translate(-50%,-50%) scale(.55) rotate(-7deg); }
+    22%,68%{ opacity:1; transform:translate(-50%,-50%) scale(1) rotate(-3deg); }
+    100%{ opacity:0; transform:translate(-50%,-56%) scale(1.08) rotate(-2deg); }
+  }
+
+  .confetti{ position:absolute; z-index:18; top:-16px; width:7px; height:13px; border-radius:2px; animation:fall linear forwards; }
+  @keyframes fall{ to{ transform:translateY(820px) rotate(680deg); } }
+
+  @media (max-width:360px){
+    :root{ --game-w:360px; --game-h:720px; }
+    .arena{ top:127px; bottom:138px; }
+    .cup-station{ min-height:80px; grid-template-columns:61px 1fr; }
+    .cup-shell{ width:59px; height:66px; }
+    .cup-shell img{ width:54px; height:63px; }
+    .title-big{ font-size:28px; }
+  }
+
+  /* Phones use the full display. Desktop fullscreen keeps the same portrait arcade cabinet. */
+  .game.is-fullscreen,.game:fullscreen{
+    width:100vw; height:100dvh; border-radius:0;
+  }
+  .game.is-fullscreen .topbar,.game:fullscreen .topbar{ top:calc(env(safe-area-inset-top) + 7px); }
+  .game.is-fullscreen .hud,.game:fullscreen .hud{ top:calc(env(safe-area-inset-top) + 57px); }
+  .game.is-fullscreen .arena,.game:fullscreen .arena{ top:calc(env(safe-area-inset-top) + 130px); bottom:calc(env(safe-area-inset-bottom) + 142px); }
+  .game.is-fullscreen .footer,.game:fullscreen .footer{ bottom:calc(env(safe-area-inset-bottom) + 9px); }
+
+  @media (min-width:700px) and (pointer:fine){
+    .game.is-fullscreen,
+    .game:fullscreen{
+      width:min(var(--game-w),100vw) !important;
+      height:min(var(--game-h),100dvh) !important;
+      position:fixed !important;
+      inset:0 !important;
+      margin:auto !important;
+      border-radius:24px !important;
+    }
+    .game.is-fullscreen .topbar,.game:fullscreen .topbar{ top:8px; }
+    .game.is-fullscreen .hud,.game:fullscreen .hud{ top:58px; }
+    .game.is-fullscreen .arena,.game:fullscreen .arena{ top:132px; bottom:143px; }
+    .game.is-fullscreen .footer,.game:fullscreen .footer{ bottom:10px; }
+    .game:fullscreen::backdrop{ background:#000036; }
+  }
+</style>
 </head>
 <body>
-    <div class="game-container" id="gameContainer">
-        <div class="cup-row" id="aiRow">
-            <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 1">
-            <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 2">
-            <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 3">
-            <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 4">
-        </div>
+<div class="game" id="game" aria-label="Elly's Flip Cup game">
+  <div class="topbar">
+    <button class="icon-btn sound-btn" id="soundBtn" aria-label="Mute sound" title="Mute sound">
+      <svg class="sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18 6a8.5 8.5 0 0 1 0 12"/></svg>
+      <svg class="sound-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="m22 9-6 6"/><path d="m16 9 6 6"/></svg>
+    </button>
+    <div class="brand">Elly's Flip Cup<small>JNC Arcade</small></div>
+    <button class="icon-btn fs-fab" id="fsFab" aria-label="Fullscreen" title="Fullscreen">
+      <svg class="enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg>
+      <svg class="exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4H4v5"/><path d="M15 20h5v-5"/><path d="M4 9l6-6"/><path d="M20 15l-6 6"/></svg>
+    </button>
+  </div>
 
-        <div class="cup-row" id="playerRow">
-            <div>
-                <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 1">
-                <button class="drink-button" onclick="drink('player', 0)">Drink</button>
-            </div>
-            <div>
-                <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 2">
-                <button class="drink-button" onclick="drink('player', 1)">Drink</button>
-            </div>
-            <div>
-                <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 3">
-                <button class="drink-button" onclick="drink('player', 2)">Drink</button>
-            </div>
-            <div>
-                <img class="cup" src="https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png" alt="Cup 4">
-                <button class="drink-button" onclick="drink('player', 3)">Drink</button>
-            </div>
-        </div>
-
-        <div class="game-buttons">
-            <button id="startButton" onclick="startGame()">Start Game</button>
-        </div>
-        <div class="game-result" id="gameResult"></div>
-        <div class="scoreboard" id="scoreboard">
-            Player Wins: 0 | Elly Wins: 0
-        </div>
+  <div class="hud">
+    <div class="fighter elly">
+      <div class="avatar">ELLY</div>
+      <div class="fighter-copy">
+        <div class="fighter-name">Elly</div>
+        <div class="round-pips" id="ellyPips"><i class="pip"></i><i class="pip"></i></div>
+      </div>
     </div>
+    <div class="round-label" id="roundLabel">Round 1</div>
+    <div class="fighter you">
+      <div class="fighter-copy">
+        <div class="fighter-name">You</div>
+        <div class="round-pips" id="youPips"><i class="pip"></i><i class="pip"></i></div>
+      </div>
+      <div class="avatar">YOU</div>
+    </div>
+  </div>
 
-    <script>
-        let playerWins = 0;
-        let aiWins = 0;
-        let playerCupsFlipped = 0;
-        let aiCupsFlipped = 0;
-        let gameInProgress = false;
-        const drinkClicksRequired = 10;
-        let drinkClicks = [0, 0, 0, 0];
-        const defaultBackground = 'https://static.wixstatic.com/media/7b5caa_fd5a13ad653043d6896ecacf35b0c592~mv2.jpg';
-        const drinkingBackground = 'https://static.wixstatic.com/media/7b5caa_f5e68179165246c48d6c30ca3fa8a996~mv2.jpg';
-        let aiDrinkBaseDelay = 1500; // Start with a base delay for AI drinking
-        let aiInterval; // To store the AI's continuous flipping interval
+  <div class="reaction" id="reaction" aria-live="polite"></div>
 
-        function startGame() {
-            gameInProgress = true;
-            playerCupsFlipped = 0;
-            aiCupsFlipped = 0;
-            drinkClicks = [0, 0, 0, 0];
-            document.getElementById('gameResult').innerText = '';
-            document.getElementById('startButton').style.display = 'none'; // Hide the start button
-            resetCups();
+  <main class="arena">
+    <section class="lane elly" id="aiLane" aria-label="Elly's cups">
+      <div class="lane-title"><b>Elly</b><span id="aiCupCount">Cup 1/4</span></div>
+      <div class="cup-track" id="aiTrack"></div>
+    </section>
+
+    <section class="lane you" id="playerLane" aria-label="Your cups. Tap to chug and swipe upward to flip.">
+      <div class="lane-title"><b>You</b><span id="playerCupCount">Cup 1/4</span></div>
+      <div class="cup-track" id="playerTrack"></div>
+      <div class="swipe-guide"><span class="swipe-arrow">↑</span>Deliberate swipe up • taps ignored</div>
+    </section>
+  </main>
+
+  <div class="footer">
+    <div class="status-row">
+      <div class="stat"><small>Score</small><strong id="scoreValue">0</strong></div>
+      <div class="phase-pill" id="phasePill">Ready</div>
+      <div class="stat"><small>Combo</small><strong id="comboValue">x0</strong></div>
+    </div>
+    <div class="instruction" id="instruction">Choose a difficulty and start the match.</div>
+    <div class="tap-zone-label">Tap anywhere on <b>your side</b> to chug • deliberate swipe up to flip</div>
+  </div>
+
+  <div class="callout" id="callout"></div>
+
+  <div class="overlay" id="overlay">
+    <div class="panel" id="menuPanel">
+      <div id="mainMenu">
+        <div class="logo-kicker">JNC Arcade Presents</div>
+        <div class="title-big">Elly's <em>Flip Cup</em></div>
+        <div class="subtitle">Chug fast. Swipe clean. Beat Elly in a best-of-three barroom showdown.</div>
+        <div class="difficulty-title">Choose your Elly</div>
+        <div class="difficulty-grid" id="difficultyGrid">
+          <button class="difficulty" data-difficulty="sober">Sober Elly<span>Friendly</span></button>
+          <button class="difficulty selected" data-difficulty="buzzed">Buzzed Elly<span>Normal</span></button>
+          <button class="difficulty" data-difficulty="party">Party Elly<span>Fast</span></button>
+          <button class="difficulty" data-difficulty="unhinged">Unhinged Elly<span>Brutal</span></button>
+        </div>
+        <button class="primary-btn" id="playBtn">Let's Flip!</button>
+        <button class="mini-btn" id="howToBtn">How to play</button>
+      </div>
+
+      <div class="howto" id="howToPanel">
+        <div class="logo-kicker">How to Play</div>
+        <div class="howto-step"><div class="step-icon">☝</div><div><b>Tap to chug</b><span>Rapidly tap anywhere on your half of the table to empty the active cup.</span></div></div>
+        <div class="howto-step"><div class="step-icon">↑</div><div><b>Swipe to flip</b><span>Swipe upward with enough force—but not too much. Straight swipes land best.</span></div></div>
+        <div class="howto-step"><div class="step-icon">★</div><div><b>Build a combo</b><span>Perfect flips multiply your points. A miss breaks the combo and costs precious time.</span></div></div>
+        <button class="primary-btn" id="howToPlayBtn">Got It — Let's Go</button>
+        <button class="mini-btn" id="backBtn">Back</button>
+      </div>
+
+      <div class="countdown" id="countdown">3</div>
+
+      <div id="resultPanel" style="display:none">
+        <div class="logo-kicker" id="resultKicker">Round Complete</div>
+        <div class="result-title" id="resultTitle">You Win!</div>
+        <div class="result-copy" id="resultCopy"></div>
+        <div class="result-stats">
+          <div class="result-stat"><strong id="resultScore">0</strong><span>Score</span></div>
+          <div class="result-stat"><strong id="resultPerfects">0</strong><span>Perfects</span></div>
+          <div class="result-stat"><strong id="resultBestCombo">0</strong><span>Best Combo</span></div>
+        </div>
+        <button class="secondary-btn" id="nextBtn">Next Round</button>
+        <button class="mini-btn" id="menuBtn">Change difficulty</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const CUP_IMG = 'https://static.wixstatic.com/media/7b5caa_c8a4e4bd28444cb6b8ce0d458eb5aa9f~mv2.png';
+  const BG_DEFAULT = 'https://static.wixstatic.com/media/7b5caa_fd5a13ad653043d6896ecacf35b0c592~mv2.jpg';
+  const BG_DRINKING = 'https://static.wixstatic.com/media/7b5caa_f5e68179165246c48d6c30ca3fa8a996~mv2.jpg';
+  const TOTAL_CUPS = 4;
+
+  const DIFFICULTIES = {
+    sober:     { label:'Sober Elly',     chug:[1550,2050], flipChance:.66, retry:[680,980], roundBoost:.97 },
+    buzzed:    { label:'Buzzed Elly',    chug:[1250,1750], flipChance:.77, retry:[560,820], roundBoost:.94 },
+    party:     { label:'Party Elly',     chug:[980,1420],  flipChance:.86, retry:[470,700], roundBoost:.92 },
+    unhinged:  { label:'Unhinged Elly',  chug:[760,1120],  flipChance:.93, retry:[390,600], roundBoost:.90 }
+  };
+
+  const ELLY_TAUNTS = ['You call that chugging?','I have been training for this!','Do not choke now!','I can smell the comeback!','This table is mine!'];
+  const ELLY_MISS = ['That cup betrayed me!','Nobody saw that.','It slipped!','Technical difficulty!'];
+  const PLAYER_PRAISE = ['NAILED IT!','That was beautiful!','Absolute perfection!','The crowd goes wild!'];
+
+  const gameEl = document.getElementById('game');
+  const aiLane = document.getElementById('aiLane');
+  const playerLane = document.getElementById('playerLane');
+  const aiTrack = document.getElementById('aiTrack');
+  const playerTrack = document.getElementById('playerTrack');
+  const aiCupCount = document.getElementById('aiCupCount');
+  const playerCupCount = document.getElementById('playerCupCount');
+  const scoreValue = document.getElementById('scoreValue');
+  const comboValue = document.getElementById('comboValue');
+  const phasePill = document.getElementById('phasePill');
+  const instruction = document.getElementById('instruction');
+  const roundLabel = document.getElementById('roundLabel');
+  const reaction = document.getElementById('reaction');
+  const callout = document.getElementById('callout');
+  const overlay = document.getElementById('overlay');
+  const mainMenu = document.getElementById('mainMenu');
+  const howToPanel = document.getElementById('howToPanel');
+  const resultPanel = document.getElementById('resultPanel');
+  const countdown = document.getElementById('countdown');
+  const difficultyGrid = document.getElementById('difficultyGrid');
+  const playBtn = document.getElementById('playBtn');
+  const howToBtn = document.getElementById('howToBtn');
+  const howToPlayBtn = document.getElementById('howToPlayBtn');
+  const backBtn = document.getElementById('backBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const menuBtn = document.getElementById('menuBtn');
+  const resultKicker = document.getElementById('resultKicker');
+  const resultTitle = document.getElementById('resultTitle');
+  const resultCopy = document.getElementById('resultCopy');
+  const resultScore = document.getElementById('resultScore');
+  const resultPerfects = document.getElementById('resultPerfects');
+  const resultBestCombo = document.getElementById('resultBestCombo');
+  const youPips = Array.from(document.querySelectorAll('#youPips .pip'));
+  const ellyPips = Array.from(document.querySelectorAll('#ellyPips .pip'));
+  const fsFab = document.getElementById('fsFab');
+  const soundBtn = document.getElementById('soundBtn');
+
+  let audioCtx = null;
+  let reactionTimer = null;
+  let aiRunToken = 0;
+  let aiRaf = 0;
+  let pointerStart = null;
+
+  const state = {
+    difficulty:'buzzed',
+    round:1,
+    playerRounds:0,
+    aiRounds:0,
+    playerIndex:0,
+    aiIndex:0,
+    playerProgress:0,
+    phase:'menu',
+    playing:false,
+    tapsNeeded:[],
+    lastTap:0,
+    tapStreak:0,
+    score:0,
+    combo:0,
+    bestCombo:0,
+    perfects:0,
+    misses:0,
+    sound:true,
+    intentionalFsExit:false
+  };
+
+  const rand = (min,max) => min + Math.random() * (max-min);
+  const randInt = (min,max) => Math.floor(rand(min,max+1));
+  const clamp = (v,min,max) => Math.max(min,Math.min(max,v));
+  const sleep = ms => new Promise(resolve => setTimeout(resolve,ms));
+
+  function ensureAudio(){
+    if(!state.sound) return null;
+    if(!audioCtx){
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(Ctx) audioCtx = new Ctx();
+    }
+    if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+    return audioCtx;
+  }
+
+  function tone(freq=440,duration=.08,type='square',volume=.035,slide=0){
+    const ctx = ensureAudio();
+    if(!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const now = ctx.currentTime;
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq,now);
+    if(slide) osc.frequency.exponentialRampToValueAtTime(Math.max(40,freq+slide),now+duration);
+    gain.gain.setValueAtTime(volume,now);
+    gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now); osc.stop(now+duration);
+  }
+
+  function soundTap(streak){ tone(170 + Math.min(streak,10)*9,.035,'square',.022,25); }
+  function soundEmpty(){ tone(520,.08,'triangle',.045,260); setTimeout(() => tone(760,.09,'triangle',.035,180),55); }
+  function soundPerfect(){ tone(620,.10,'square',.045,320); setTimeout(() => tone(940,.16,'triangle',.04,280),90); }
+  function soundLand(){ tone(115,.12,'sine',.08,-35); }
+  function soundMiss(){ tone(210,.15,'sawtooth',.035,-110); }
+  function soundCountdown(n){ tone(n === 'FLIP!' ? 720 : 320,.09,'square',.04,n === 'FLIP!' ? 300 : 0); }
+  function vibrate(pattern){ if(navigator.vibrate) navigator.vibrate(pattern); }
+
+  function setBackground(url){ gameEl.style.backgroundImage = `url(${url})`; }
+
+  function buildTrack(track,owner){
+    track.innerHTML = '';
+    for(let i=0;i<TOTAL_CUPS;i++){
+      const station = document.createElement('div');
+      station.className = 'cup-station';
+      station.dataset.index = String(i);
+      station.innerHTML = `
+        <div class="cup-shell">
+          <div class="liquid-window"><div class="liquid-fill"></div></div>
+          <img src="${CUP_IMG}" alt="${owner} cup ${i+1}" draggable="false" />
+        </div>
+        <div class="station-info">
+          <div class="station-number">Cup ${i+1}</div>
+          <div class="meter"><i></i></div>
+          <div class="station-status">Waiting</div>
+        </div>`;
+      track.appendChild(station);
+    }
+  }
+
+  function getStations(track){ return Array.from(track.querySelectorAll('.cup-station')); }
+  function stationParts(track,index){
+    const station = getStations(track)[index];
+    if(!station) return {};
+    return {
+      station,
+      shell:station.querySelector('.cup-shell'),
+      fill:station.querySelector('.liquid-fill'),
+      meter:station.querySelector('.meter i'),
+      status:station.querySelector('.station-status')
+    };
+  }
+
+  function resetTracks(){
+    [aiTrack,playerTrack].forEach(track => {
+      getStations(track).forEach((station,index) => {
+        station.className = 'cup-station';
+        const shell = station.querySelector('.cup-shell');
+        shell.className = 'cup-shell';
+        station.querySelector('.liquid-fill').style.height = '100%';
+        station.querySelector('.meter i').style.width = '0%';
+        station.querySelector('.station-status').textContent = index === 0 ? 'Ready' : 'Waiting';
+      });
+    });
+    getStations(aiTrack)[0]?.classList.add('current');
+    getStations(playerTrack)[0]?.classList.add('current');
+  }
+
+  function updateCurrentStations(){
+    getStations(aiTrack).forEach((s,i) => s.classList.toggle('current',i === state.aiIndex));
+    getStations(playerTrack).forEach((s,i) => s.classList.toggle('current',i === state.playerIndex));
+    aiCupCount.textContent = state.aiIndex >= TOTAL_CUPS ? 'Finished' : `Cup ${state.aiIndex+1}/${TOTAL_CUPS}`;
+    playerCupCount.textContent = state.playerIndex >= TOTAL_CUPS ? 'Finished' : `Cup ${state.playerIndex+1}/${TOTAL_CUPS}`;
+  }
+
+  function updateHUD(){
+    scoreValue.textContent = String(state.score);
+    comboValue.textContent = `x${state.combo}`;
+    roundLabel.textContent = `Round ${state.round}`;
+    youPips.forEach((p,i) => p.classList.toggle('on',i < state.playerRounds));
+    ellyPips.forEach((p,i) => p.classList.toggle('on',i < state.aiRounds));
+
+    const flip = state.phase === 'flip';
+    playerLane.classList.toggle('active',state.playing && state.playerIndex < TOTAL_CUPS);
+    playerLane.classList.toggle('ready-flip',flip);
+    aiLane.classList.toggle('active',state.playing && state.aiIndex < TOTAL_CUPS);
+    phasePill.classList.toggle('flip',flip);
+    phasePill.textContent = state.phase === 'chug' ? 'Chug!' : state.phase === 'flip' ? 'Swipe Up!' : state.phase === 'countdown' ? 'Get Ready' : state.phase === 'result' ? 'Round Over' : 'Ready';
+
+    if(state.phase === 'chug') instruction.textContent = `Cup ${state.playerIndex+1}: tap fast to empty it!`;
+    else if(state.phase === 'flip') instruction.textContent = 'Use a deliberate upward swipe—taps are ignored.';
+    else if(state.phase === 'result') instruction.textContent = 'Round complete.';
+  }
+
+  function showReaction(text,side='elly'){
+    clearTimeout(reactionTimer);
+    reaction.className = `reaction ${side}`;
+    reaction.textContent = text;
+    void reaction.offsetWidth;
+    reaction.classList.add('show');
+    reactionTimer = setTimeout(() => reaction.classList.remove('show'),1200);
+  }
+
+  function showCallout(text,type='good'){
+    callout.className = `callout ${type}`;
+    callout.textContent = text;
+    void callout.offsetWidth;
+    callout.classList.add('show');
+    setTimeout(() => callout.classList.remove('show'),820);
+  }
+
+  function screenShake(){
+    gameEl.classList.remove('shake');
+    void gameEl.offsetWidth;
+    gameEl.classList.add('shake');
+  }
+
+  function confettiBurst(){
+    const colors = ['#16e28b','#00eaff','#ffd166','#ff5aa5','#ffffff'];
+    for(let i=0;i<42;i++){
+      const piece = document.createElement('i');
+      piece.className = 'confetti';
+      piece.style.left = `${Math.random()*100}%`;
+      piece.style.background = colors[randInt(0,colors.length-1)];
+      piece.style.animationDuration = `${rand(.9,1.75)}s`;
+      piece.style.transform = `translateY(-20px) rotate(${randInt(0,180)}deg)`;
+      gameEl.appendChild(piece);
+      setTimeout(() => piece.remove(),1900);
+    }
+  }
+
+  function setMenuView(view){
+    mainMenu.style.display = view === 'menu' ? 'block' : 'none';
+    howToPanel.classList.toggle('show',view === 'howto');
+    resultPanel.style.display = view === 'result' ? 'block' : 'none';
+    countdown.style.display = view === 'countdown' ? 'block' : 'none';
+  }
+
+  async function startCountdown(){
+    state.phase = 'countdown';
+    updateHUD();
+    overlay.classList.remove('hidden');
+    setMenuView('countdown');
+    for(const item of ['3','2','1','FLIP!']){
+      countdown.textContent = item;
+      countdown.classList.remove('pop');
+      void countdown.offsetWidth;
+      countdown.classList.add('pop');
+      soundCountdown(item);
+      await sleep(item === 'FLIP!' ? 540 : 620);
+    }
+    overlay.classList.add('hidden');
+  }
+
+  function prepareNewMatch(){
+    state.round = 1;
+    state.playerRounds = 0;
+    state.aiRounds = 0;
+    state.score = 0;
+    state.combo = 0;
+    state.bestCombo = 0;
+    state.perfects = 0;
+    state.misses = 0;
+    updateHUD();
+  }
+
+  async function startMatch(){
+    ensureAudio();
+    await requestGameFullscreen();
+    prepareNewMatch();
+    startRound();
+  }
+
+  async function startRound(){
+    aiRunToken++;
+    cancelAnimationFrame(aiRaf);
+    state.playerIndex = 0;
+    state.aiIndex = 0;
+    state.playerProgress = 0;
+    state.phase = 'countdown';
+    state.playing = false;
+    state.lastTap = 0;
+    state.tapStreak = 0;
+    state.combo = 0;
+    state.tapsNeeded = Array.from({length:TOTAL_CUPS},() => randInt(8,12));
+    resetTracks();
+    updateCurrentStations();
+    updateHUD();
+    setBackground(BG_DEFAULT);
+    await startCountdown();
+    state.playing = true;
+    state.phase = 'chug';
+    stationParts(playerTrack,0).status.textContent = 'Tap!';
+    stationParts(aiTrack,0).status.textContent = 'Chugging';
+    updateHUD();
+    runAI(aiRunToken);
+  }
+
+  function playerTap(){
+    if(!state.playing || state.phase !== 'chug' || state.playerIndex >= TOTAL_CUPS) return;
+    const now = performance.now();
+    state.tapStreak = now - state.lastTap < 235 ? state.tapStreak + 1 : 1;
+    state.lastTap = now;
+
+    const needed = state.tapsNeeded[state.playerIndex];
+    const streakBoost = 1 + Math.min(state.tapStreak,10)*.018;
+    state.playerProgress = clamp(state.playerProgress + (1/needed)*streakBoost,0,1);
+
+    const parts = stationParts(playerTrack,state.playerIndex);
+    const percent = state.playerProgress*100;
+    parts.fill.style.height = `${100-percent}%`;
+    parts.meter.style.width = `${percent}%`;
+    parts.status.textContent = state.tapStreak >= 6 ? `Streak ${state.tapStreak}` : 'Chugging';
+    soundTap(state.tapStreak);
+    if(state.tapStreak % 4 === 0) vibrate(6);
+
+    if(state.playerProgress >= 1){
+      state.phase = 'flip';
+      parts.fill.style.height = '0%';
+      parts.meter.style.width = '100%';
+      parts.status.textContent = 'Swipe!';
+      soundEmpty();
+      vibrate([20,25,20]);
+      updateHUD();
+    }
+  }
+
+  function evaluateSwipe(start,end){
+    const rawDx = end.x - start.x;
+    const dy = start.y - end.y;
+    const dx = Math.abs(rawDx);
+    const distance = Math.hypot(rawDx,end.y-start.y);
+    const duration = Math.max(1,end.time-start.time);
+
+    // A tap, jitter, or tiny drag is not a flip attempt and carries no penalty.
+    // The player must make a clearly intentional upward swipe.
+    if(distance < 58 || dy < 48) return {attempt:false};
+
+    if(dx > 78) return {attempt:true,success:false,type:'crooked',label:'Crooked!'};
+    if(dy > 205 || (dy > 170 && duration < 180)) return {attempt:true,success:false,type:'over',label:'Too Much!'};
+
+    const quality = dy - dx*.85 - Math.max(0,duration-520)*.06;
+    if(quality < 62) return {attempt:true,success:false,type:'weak',label:'Too Weak'};
+    const perfect = dy >= 96 && dy <= 150 && dx <= 24 && duration <= 470;
+    return {attempt:true,success:true,perfect,type:perfect?'perfect':'good',label:perfect?'Perfect!':'Landed!'};
+  }
+
+  async function attemptPlayerFlip(result){
+    if(!result || result.attempt === false) return;
+    if(!state.playing || state.phase !== 'flip') return;
+    state.phase = 'animating';
+    updateHUD();
+    const parts = stationParts(playerTrack,state.playerIndex);
+    const className = result.success ? (result.perfect ? 'flip-perfect' : 'flip-good') : `flip-${result.type}`;
+    parts.shell.classList.add(className);
+
+    if(result.success){
+      soundLand();
+      if(result.perfect){
+        soundPerfect();
+        state.perfects++;
+        state.combo++;
+        state.bestCombo = Math.max(state.bestCombo,state.combo);
+        state.score += 500 + state.combo*125;
+        showCallout('PERFECT!','perfect');
+        showReaction(PLAYER_PRAISE[randInt(0,PLAYER_PRAISE.length-1)],'you');
+        vibrate([25,25,45]);
+      }else{
+        state.combo++;
+        state.bestCombo = Math.max(state.bestCombo,state.combo);
+        state.score += 250 + state.combo*70;
+        showCallout('LANDED!','good');
+        vibrate(35);
+      }
+      screenShake();
+      await sleep(760);
+      if(!state.playing) return;
+      parts.shell.className = 'cup-shell landed';
+      parts.station.classList.remove('current');
+      parts.station.classList.add('done');
+      parts.status.textContent = result.perfect ? 'Perfect' : 'Landed';
+      state.playerIndex++;
+      state.playerProgress = 0;
+      updateCurrentStations();
+      updateHUD();
+      if(state.playerIndex >= TOTAL_CUPS){
+        endRound(true);
+        return;
+      }
+      const next = stationParts(playerTrack,state.playerIndex);
+      next.status.textContent = 'Tap!';
+      state.phase = 'chug';
+      updateHUD();
+    }else{
+      soundMiss();
+      vibrate([45,30,20]);
+      state.misses++;
+      state.combo = 0;
+      state.score = Math.max(0,state.score-75);
+      showCallout(result.label,'miss');
+      await sleep(720);
+      if(!state.playing) return;
+      parts.shell.className = 'cup-shell';
+      parts.status.textContent = 'Try again';
+      state.phase = 'flip';
+      updateHUD();
+    }
+  }
+
+  async function runAI(token){
+    const cfg = DIFFICULTIES[state.difficulty];
+    while(state.playing && state.aiIndex < TOTAL_CUPS && token === aiRunToken){
+      const parts = stationParts(aiTrack,state.aiIndex);
+      parts.status.textContent = 'Chugging';
+      setBackground(BG_DRINKING);
+      const roundFactor = Math.pow(cfg.roundBoost,state.round-1);
+      const duration = rand(cfg.chug[0],cfg.chug[1]) * roundFactor;
+      await animateAIChug(parts,duration,token);
+      if(!state.playing || token !== aiRunToken) return;
+      setBackground(BG_DEFAULT);
+      parts.status.textContent = 'Flipping';
+      await sleep(rand(180,360));
+
+      let landed = false;
+      while(state.playing && !landed && token === aiRunToken){
+        const clutchBoost = state.aiIndex === TOTAL_CUPS-1 ? .025 : 0;
+        landed = Math.random() < Math.min(.98,cfg.flipChance+clutchBoost);
+        parts.shell.classList.add(landed ? 'flip-good' : 'ai-fail');
+        if(landed){
+          soundLand();
+          await sleep(760);
+          parts.shell.className = 'cup-shell landed';
+          parts.station.classList.remove('current');
+          parts.station.classList.add('done');
+          parts.status.textContent = 'Landed';
+          state.aiIndex++;
+          updateCurrentStations();
+          if(state.aiIndex >= TOTAL_CUPS){
+            endRound(false);
+            return;
+          }
+          stationParts(aiTrack,state.aiIndex).status.textContent = 'Ready';
+          if(Math.random() < .34) showReaction(ELLY_TAUNTS[randInt(0,ELLY_TAUNTS.length-1)],'elly');
+        }else{
+          soundMiss();
+          parts.status.textContent = 'Missed!';
+          showReaction(ELLY_MISS[randInt(0,ELLY_MISS.length-1)],'elly');
+          await sleep(720);
+          parts.shell.className = 'cup-shell';
+          await sleep(rand(cfg.retry[0],cfg.retry[1]));
+          if(state.playing) parts.status.textContent = 'Retrying';
         }
+      }
+    }
+  }
 
-        function resetCups() {
-            const playerCups = document.getElementById('playerRow').querySelectorAll('.cup');
-            const aiCups = document.getElementById('aiRow').querySelectorAll('.cup');
-            const drinkButtons = document.getElementById('playerRow').querySelectorAll('.drink-button');
+  function animateAIChug(parts,duration,token){
+    return new Promise(resolve => {
+      const start = performance.now();
+      function step(now){
+        if(!state.playing || token !== aiRunToken){ resolve(); return; }
+        const p = clamp((now-start)/duration,0,1);
+        parts.fill.style.height = `${100-p*100}%`;
+        parts.meter.style.width = `${p*100}%`;
+        if(p < 1) aiRaf = requestAnimationFrame(step);
+        else resolve();
+      }
+      aiRaf = requestAnimationFrame(step);
+    });
+  }
 
-            for (let i = 0; i < playerCups.length; i++) {
-                playerCups[i].classList.remove('flipped');
-                drinkButtons[i].disabled = false;
-            }
-            for (let i = 0; i < aiCups.length; i++) {
-                aiCups[i].classList.remove('flipped');
-            }
-            document.getElementById('gameContainer').style.backgroundImage = `url(${defaultBackground})`;
+  async function endRound(playerWon){
+    if(!state.playing) return;
+    state.playing = false;
+    state.phase = 'result';
+    aiRunToken++;
+    cancelAnimationFrame(aiRaf);
+    setBackground(BG_DEFAULT);
+
+    if(playerWon){
+      state.playerRounds++;
+      state.score += 1000;
+      confettiBurst();
+      showReaction('THAT WAS RIDICULOUS!','elly');
+    }else{
+      state.aiRounds++;
+      showReaction('Better luck next cup!','elly');
+    }
+    updateHUD();
+    await sleep(850);
+
+    const matchOver = state.playerRounds >= 2 || state.aiRounds >= 2;
+    overlay.classList.remove('hidden');
+    setMenuView('result');
+    resultKicker.textContent = matchOver ? 'Match Complete' : `Round ${state.round} Complete`;
+    resultTitle.textContent = matchOver ? (state.playerRounds >= 2 ? 'You Beat Elly!' : 'Elly Wins!') : (playerWon ? 'You Win!' : 'Elly Wins!');
+    resultTitle.className = `result-title ${playerWon ? 'win' : 'lose'}`;
+    resultCopy.textContent = matchOver
+      ? (state.playerRounds >= 2 ? `You survived ${DIFFICULTIES[state.difficulty].label} and ruled the table.` : `${DIFFICULTIES[state.difficulty].label} took the match. Time for revenge.`)
+      : (playerWon ? 'You took the round. Elly is getting faster.' : 'Elly took the round, but the match is not over.');
+    resultScore.textContent = String(state.score);
+    resultPerfects.textContent = String(state.perfects);
+    resultBestCombo.textContent = String(state.bestCombo);
+    nextBtn.textContent = matchOver ? 'Play Again' : 'Next Round';
+    nextBtn.dataset.matchOver = matchOver ? '1' : '0';
+  }
+
+  function handlePointerDown(e){
+    if(!state.playing || !playerLane.contains(e.target)) return;
+    e.preventDefault();
+    pointerStart = { x:e.clientX, y:e.clientY, time:performance.now(), id:e.pointerId, phase:state.phase, moved:false };
+    if(state.phase === 'chug') playerTap();
+    try{ playerLane.setPointerCapture(e.pointerId); }catch(_){ }
+  }
+
+  function handlePointerMove(e){
+    if(!pointerStart || e.pointerId !== pointerStart.id) return;
+    const distance = Math.hypot(e.clientX-pointerStart.x,e.clientY-pointerStart.y);
+    if(distance >= 12) pointerStart.moved = true;
+  }
+
+  function handlePointerUp(e){
+    if(!pointerStart || e.pointerId !== pointerStart.id) return;
+    e.preventDefault();
+    const start = pointerStart;
+    const end = { x:e.clientX, y:e.clientY, time:performance.now() };
+    const releaseDistance = Math.hypot(end.x-start.x,end.y-start.y);
+    pointerStart = null;
+    if(start.phase === 'flip' && state.phase === 'flip' && (start.moved || releaseDistance >= 12)){
+      const result = evaluateSwipe(start,end);
+      if(result.attempt !== false) attemptPlayerFlip(result);
+    }
+    try{ playerLane.releasePointerCapture(e.pointerId); }catch(_){ }
+  }
+
+  function handleKey(e){
+    if(e.code === 'Space'){
+      e.preventDefault();
+      playerTap();
+    }
+    if((e.code === 'ArrowUp' || e.code === 'KeyW') && state.phase === 'flip'){
+      e.preventDefault();
+      attemptPlayerFlip({success:true,perfect:false,type:'good',label:'Landed!'});
+    }
+    if(e.code === 'KeyF'){
+      e.preventDefault(); toggleFullscreen(true);
+    }
+  }
+
+  function chooseDifficulty(key){
+    if(!DIFFICULTIES[key]) return;
+    state.difficulty = key;
+    Array.from(difficultyGrid.querySelectorAll('.difficulty')).forEach(btn => btn.classList.toggle('selected',btn.dataset.difficulty === key));
+  }
+
+  function showMainMenu(){
+    aiRunToken++;
+    state.playing = false;
+    state.phase = 'menu';
+    overlay.classList.remove('hidden');
+    setMenuView('menu');
+    updateHUD();
+    instruction.textContent = 'Choose a difficulty and start the match.';
+  }
+
+  function isFullscreen(){ return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement); }
+
+  async function requestGameFullscreen(){
+    try{
+      const request = gameEl.requestFullscreen || gameEl.webkitRequestFullscreen || gameEl.msRequestFullscreen;
+      if(!isFullscreen() && request){
+        const result = request.call(gameEl);
+        if(result && typeof result.then === 'function'){
+          try{ await result; }catch(_){ }
         }
+        if(!isFullscreen()) gameEl.classList.add('is-fullscreen');
+      }else if(!request){
+        gameEl.classList.add('is-fullscreen');
+      }
+    }catch(_){ gameEl.classList.add('is-fullscreen'); }
+    updateFullscreenUI();
+  }
 
-        function drink(player, index) {
-            if (!gameInProgress || playerCupsFlipped !== index) return;
+  function exitFullscreen(){
+    const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+    if(isFullscreen() && exit) exit.call(document);
+    gameEl.classList.remove('is-fullscreen');
+    updateFullscreenUI();
+  }
 
-            drinkClicks[index]++;
+  function toggleFullscreen(intentional=true){
+    if(isFullscreen() || gameEl.classList.contains('is-fullscreen')){
+      state.intentionalFsExit = intentional;
+      exitFullscreen();
+    }else requestGameFullscreen();
+  }
 
-            if (drinkClicks[index] >= drinkClicksRequired) {
-                flipCup(player, index);
-            }
+  function updateFullscreenUI(){
+    const full = isFullscreen() || gameEl.classList.contains('is-fullscreen');
+    gameEl.classList.toggle('is-fullscreen',full);
+    fsFab.title = full ? 'Exit fullscreen' : 'Fullscreen';
+    fsFab.setAttribute('aria-label',fsFab.title);
+  }
 
-            // Start AI Elly's continuous action after the first player click
-            if (index === 0 && drinkClicks[index] === 1) {
-                aiContinuousFlip();
-            }
-        }
+  function fullscreenGuard(){
+    const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if(mobile && state.playing && !isFullscreen() && !gameEl.classList.contains('is-fullscreen') && !state.intentionalFsExit){
+      setTimeout(() => requestGameFullscreen(),50);
+    }
+    state.intentionalFsExit = false;
+    updateFullscreenUI();
+  }
 
-        function flipCup(player, index) {
-            const playerCups = document.getElementById('playerRow').querySelectorAll('.cup');
-            const drinkButtons = document.getElementById('playerRow').querySelectorAll('.drink-button');
+  function toggleSound(){
+    state.sound = !state.sound;
+    soundBtn.classList.toggle('muted',!state.sound);
+    soundBtn.title = state.sound ? 'Mute sound' : 'Turn sound on';
+    soundBtn.setAttribute('aria-label',soundBtn.title);
+    if(state.sound){ ensureAudio(); tone(520,.08,'triangle',.04,140); }
+  }
 
-            playerCups[index].classList.add('flipped');
-            drinkButtons[index].disabled = true;
-            playerCupsFlipped++;
+  function preload(){
+    [CUP_IMG,BG_DEFAULT,BG_DRINKING].forEach(src => { const img = new Image(); img.src = src; });
+  }
 
-            if (playerCupsFlipped === playerCups.length) {
-                gameInProgress = false;
-                clearInterval(aiInterval); // Stop AI's action
-                playerWins++;
-                updateScoreboard();
-                document.getElementById('gameResult').innerText = 'You win! All cups flipped!';
-                increaseAiSpeed();
-                endGame();
-            }
-        }
+  function bindEvents(){
+    difficultyGrid.addEventListener('click',e => {
+      const btn = e.target.closest('.difficulty');
+      if(btn) chooseDifficulty(btn.dataset.difficulty);
+    });
+    playBtn.addEventListener('click',startMatch);
+    howToBtn.addEventListener('click',() => setMenuView('howto'));
+    howToPlayBtn.addEventListener('click',startMatch);
+    backBtn.addEventListener('click',() => setMenuView('menu'));
+    nextBtn.addEventListener('click',() => {
+      overlay.classList.add('hidden');
+      if(nextBtn.dataset.matchOver === '1'){
+        prepareNewMatch();
+      }else{
+        state.round++;
+      }
+      startRound();
+    });
+    menuBtn.addEventListener('click',showMainMenu);
+    playerLane.addEventListener('pointerdown',handlePointerDown,{passive:false});
+    playerLane.addEventListener('pointermove',handlePointerMove,{passive:false});
+    playerLane.addEventListener('pointerup',handlePointerUp,{passive:false});
+    playerLane.addEventListener('pointercancel',() => { pointerStart = null; });
+    window.addEventListener('keydown',handleKey);
+    fsFab.addEventListener('click',e => { e.preventDefault(); e.stopPropagation(); toggleFullscreen(true); });
+    soundBtn.addEventListener('click',e => { e.preventDefault(); e.stopPropagation(); toggleSound(); });
+    ['fullscreenchange','webkitfullscreenchange','msfullscreenchange'].forEach(event => document.addEventListener(event,fullscreenGuard));
+  }
 
-        function aiContinuousFlip() {
-            aiInterval = setInterval(() => {
-                if (aiCupsFlipped >= 4 || !gameInProgress) return clearInterval(aiInterval);
+  function init(){
+    buildTrack(aiTrack,'Elly');
+    buildTrack(playerTrack,'Your');
+    resetTracks();
+    updateCurrentStations();
+    updateHUD();
+    setMenuView('menu');
+    setBackground(BG_DEFAULT);
+    bindEvents();
+    preload();
 
-                const aiCups = document.getElementById('aiRow').querySelectorAll('.cup');
-                const aiDrinkDelay = Math.random() * aiDrinkBaseDelay + 1000; // Random delay between 1000ms and aiDrinkBaseDelay+1000ms
-                const aiFlipDelay = 700; // Slower: 700ms delay between flipping after drinking
+    console.assert(getStations(aiTrack).length === TOTAL_CUPS,'Elly should have four cups.');
+    console.assert(getStations(playerTrack).length === TOTAL_CUPS,'Player should have four cups.');
+    console.assert(typeof evaluateSwipe === 'function','Swipe evaluation should exist.');
+  }
 
-                // AI "drinking"
-                document.getElementById('gameContainer').style.backgroundImage = `url(${drinkingBackground})`;
-
-                setTimeout(() => {
-                    // Switch back to default background before flipping
-                    document.getElementById('gameContainer').style.backgroundImage = `url(${defaultBackground})`;
-
-                    setTimeout(() => {
-                        aiCups[aiCupsFlipped].classList.add('flipped');
-                        aiCupsFlipped++;
-
-                        if (aiCupsFlipped === aiCups.length) {
-                            clearInterval(aiInterval); // Stop AI's action
-                            if (gameInProgress) { // Ensure AI wins only if the player hasn't won yet
-                                gameInProgress = false;
-                                aiWins++;
-                                updateScoreboard();
-                                document.getElementById('gameResult').innerText = 'Elly wins! All cups flipped!';
-                                endGame();
-                            }
-                        }
-                    }, aiFlipDelay);
-                }, aiDrinkDelay);
-            }, aiDrinkBaseDelay + 2000); // Add a little delay to ensure the setInterval cadence matches AI's speed
-        }
-
-        function endGame() {
-            gameInProgress = false;
-            const drinkButtons = document.getElementById('playerRow').querySelectorAll('.drink-button');
-            drinkButtons.forEach(button => button.disabled = true);
-            document.getElementById('startButton').innerText = 'Click for a Rematch'; // Change button text
-            document.getElementById('startButton').style.display = 'block'; // Show the button again
-        }
-
-        function updateScoreboard() {
-            document.getElementById('scoreboard').innerText = `Player Wins: ${playerWins} | Elly Wins: ${aiWins}`;
-        }
-
-        function increaseAiSpeed() {
-            // Reduce the base delay for AI drinking after each player win
-            if (aiDrinkBaseDelay > 500) {
-                aiDrinkBaseDelay -= 200; // Increase AI speed slightly
-            }
-        }
-    </script>
-</body>
-</html>
-<!-- partial -->
-  
+  init();
+})();
+</script>
 </body>
 </html>
