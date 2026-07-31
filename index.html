@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#090b4f" />
-<title>Elly's Flip Cup — JNC Arcade 5.6 Glow-Up v5</title>
+<title>Elly's Flip Cup — JNC Arcade 5.6 Glow-Up v7</title>
 <style>
   :root{
     --game-w:380px;
@@ -19,7 +19,7 @@
     --shadow:0 18px 55px rgba(0,0,0,.52);
   }
 
-  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; }
   html,body{
     width:100%; height:100%; min-height:100%; margin:0; overflow:hidden;
     position:fixed; inset:0;
@@ -177,7 +177,11 @@
   .lane.active{ box-shadow:inset 0 0 0 2px currentColor,0 0 22px rgba(255,255,255,.17); }
   .lane.elly{ color:var(--elly); }
   .lane.elly.active{ box-shadow:inset 0 0 0 2px var(--elly),0 0 22px rgba(255,90,165,.32); }
-  .lane.you{ color:var(--you); cursor:pointer; }
+  .lane.you{
+    color:var(--you); cursor:pointer;
+    touch-action:none;
+    -webkit-user-select:none; user-select:none;
+  }
   .lane.you.active{ box-shadow:inset 0 0 0 2px var(--you),0 0 22px rgba(22,226,139,.30); }
   .lane.you.ready-flip{ background:linear-gradient(180deg,rgba(22,226,139,.11),rgba(2,3,23,.70)); }
 
@@ -813,8 +817,14 @@
     updateHUD();
   }
 
-  function startMatch(){
+  async function startMatch(){
     ensureAudio();
+
+    // Browsers only allow fullscreen from a direct user gesture. Enter it as
+    // soon as Play is tapped on Android or in Safari; other browsers retain
+    // the centered portrait cabinet unless the fullscreen button is used.
+    if(shouldAutoFullscreen()) await requestGameFullscreen();
+
     prepareNewMatch();
     startRound();
   }
@@ -1114,6 +1124,16 @@
     instruction.textContent = 'Choose a difficulty and start the match.';
   }
 
+  function isSafariBrowser(){
+    const ua = navigator.userAgent || '';
+    return /Safari/i.test(ua) && !/(Chrome|Chromium|CriOS|FxiOS|EdgiOS|OPiOS|SamsungBrowser|Android)/i.test(ua);
+  }
+
+  function shouldAutoFullscreen(){
+    const ua = navigator.userAgent || '';
+    return /Android/i.test(ua) || isSafariBrowser();
+  }
+
   function isFullscreen(){ return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement); }
 
   async function requestGameFullscreen(){
@@ -1157,8 +1177,8 @@
   }
 
   function fullscreenGuard(){
-    // Fullscreen is now entirely user-controlled. Exiting it never triggers
-    // an automatic request to enter again.
+    // Automatic entry happens only from the Play tap, where browsers permit
+    // fullscreen. A manual exit is respected and is never immediately undone.
     state.intentionalFsExit = false;
     updateFullscreenUI();
   }
@@ -1204,9 +1224,17 @@
     ['fullscreenchange','webkitfullscreenchange','msfullscreenchange'].forEach(event => document.addEventListener(event,fullscreenGuard));
     window.addEventListener('resize',updateViewportLayout,{passive:true});
     window.addEventListener('orientationchange',() => window.setTimeout(updateViewportLayout,120),{passive:true});
-    // Stop iOS rubber-band panning and pinch/double-tap viewport movement while
+    // Stop iOS rubber-band panning and pinch viewport movement while
     // preserving normal pointer/click events for every game control.
     gameEl.addEventListener('touchmove',e => e.preventDefault(),{passive:false});
+
+    // iOS Safari can still interpret two fast drinking taps as a browser zoom,
+    // especially when the game is embedded. Gameplay is handled with pointer
+    // events, so cancelling the lane's native touchend default does not remove
+    // chug taps or upward swipe releases; it only blocks Safari's zoom gesture.
+    playerLane.addEventListener('touchend',e => e.preventDefault(),{passive:false});
+    playerLane.addEventListener('dblclick',e => e.preventDefault(),{passive:false});
+
     ['gesturestart','gesturechange','gestureend'].forEach(type => {
       document.addEventListener(type,e => e.preventDefault(),{passive:false});
     });
@@ -1229,6 +1257,7 @@
     console.assert(typeof evaluateSwipe === 'function','Swipe evaluation should exist.');
     console.assert(stageFrameEl && stageEl && DESIGN_WIDTH === 380 && DESIGN_HEIGHT === 760,'Centered portrait stage should exist.');
     console.assert(stageFrameEl.style.width && stageFrameEl.style.height,'Scaled frame should define the centered footprint.');
+    console.assert(getComputedStyle(playerLane).touchAction === 'none','Player lane should suppress Safari double-tap zoom.');
   }
 
   init();
